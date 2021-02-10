@@ -31,11 +31,12 @@ for (i in 1:length(list_filenames)){
 #Read in Exclusion Files
 BOT <- read.csv("C:/AnalyzeMe!/VBAC_Aging/Subject/Raw/Gorilla/Exclusions/UnusableDataBots_DATA_LABELS_2020-08-15_0959.csv")
 REPEATER <- read.csv("C:/AnalyzeMe!/VBAC_Aging/Subject/Raw/Gorilla/Exclusions/RepeatersAcrossStudy_Gorilla_2020-08-15_1050.csv")
-MOOD_SCORES <- read.csv("C:/AnalyzeMe!/VBAC_Aging/Subject/Raw/Gorilla/Exclusions/MoodScoresz&IDs.csv")
+MOOD_SCORES <- read.csv("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Redcap/VBAConline-PilotDemographicRepo_DATA_LABELS_2021-02-10_1128.csv")
 
 #View variables as output tab
 #View(BOT)
 #View(REPEATER)
+#View(MOOD_SCORES)
 
 #Bind and select==============================================================================
 ##Binds data into dataframe for analysis
@@ -43,7 +44,7 @@ data_simons_combined <- as.data.frame(do.call(rbind, list_simons))
 
 #Select specific columns from data sheets
 data_simons_stripped <- data_simons_combined %>%
-  select("Gorilla.Public.Id",
+  select("Participant Public ID",
          "Participant Private ID",
          "Zone Type",
          "Reaction Time",
@@ -54,11 +55,13 @@ data_simons_stripped <- data_simons_combined %>%
 #filters dataframe by zonetype to get rid of all but participant response
 data_simons_filtered <- filter(data_simons_stripped, `Zone Type` == "response_keyboard")
 
+#Counts the total number of unique IDs
+Total_count <- unique(data_simons_filtered$`Participant Public ID`)
+length(Total_count)
+
 #View variables as output tab
-#View(data_simons_combined)
 #View(data_simons_stripped)
 #View(data_simons_filtered)
-#
 
 #Add Type Column==============================================================================
 #Defines the type of question as congruent or incongruent
@@ -76,13 +79,14 @@ data_simons_filtered <- mutate(
 
 #View variables as output tab
 #View(data_simons_filtered)
+
 ##Filter out bots and repeaters ==================================================================
 #Remove exclusions from data_simons_filtered
 
-data_simons_strippedBOT <- data_simons_filtered[!(BOT$Gorilla.public.id == data_simons_stripped$Gorilla.Public.Id),]
+data_simons_strippedBOT <- data_simons_filtered[!(BOT$Gorilla.public.id == data_simons_stripped$Participant Public ID),]
 #data_simons_strippedBOT
 
-data_simons_stripREPEATE <- data_simons_strippedBOT[!(REPEATER$List.Public.ID == data_simons_strippedBOT$Gorilla.Public.Id),]
+data_simons_stripREPEATE <- data_simons_strippedBOT[!(REPEATER$List.Public.ID == data_simons_strippedBOT$Participant Public ID),]
 #data_simons_stripREPEATE
 
 #View variables as output tab
@@ -90,7 +94,7 @@ data_simons_stripREPEATE <- data_simons_strippedBOT[!(REPEATER$List.Public.ID ==
 #View(data_simons_stripREPEATE)
 
 
-#Merge Mood scores==============================================================================
+#Merge Mood scores==========================================================================================
 #Merges MOOD_SCORES with data_simons_filtered so that the mood and ID's from Redcap
 #are in the same place as the behavior scores.
 
@@ -100,7 +104,7 @@ data_simons_stripREPEATE <- data_simons_strippedBOT[!(REPEATER$List.Public.ID ==
 #!If this errors, then we need to change the colomn names to match here and all other "Participant.Public.ID"
 #!will need to be changed to "Gorilla_Public_ID" for the script.
 
-data_simons_merged <- merge(MOOD_SCORES, data_simons_stripREPEATE, by.x ="Gorilla_Public_ID", by.y = "Participant.Public.ID")
+data_simons_merged <- merge(MOOD_SCORES, data_simons_stripREPEATE, by.x ="Gorilla_Public_ID", by.y = "Participant Public ID")
 
 #View variables as output tab
 #View(data_simons_merged)
@@ -120,7 +124,7 @@ data_simons_merged <- merge(MOOD_SCORES, data_simons_stripREPEATE, by.x ="Gorill
 # Create Summaries==============================================================
 #Loop to caclculate overall Mean, SD, SE, and % correct
 total_summary_zone_types <- data_simons_merged %>%
-  group_by(Participant.Public.ID) %>%
+  group_by(`Participant Public ID`) %>%
   summarize(RT_mn = mean(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_sd = sd(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_se  = RT_sd / sqrt(sum(as.numeric(`Reaction Time`), na.rm = TRUE)/RT_mn),
@@ -130,7 +134,7 @@ total_summary_zone_types <- data_simons_merged %>%
 #Loop to caclculate Congruent Mean, SD, SE, and % correct
 congruent_summary_zone_types <- data_simons_merged %>%
   filter(`Question Type` == "Congruent") %>%
-  group_by(Participant.Public.ID) %>%
+  group_by(`Participant Public ID`) %>%
   summarize(Con_RT_mn = mean(as.numeric(`Reaction Time`), na.rm = TRUE),
             Con_RT_sd = sd(as.numeric(`Reaction Time`), na.rm = TRUE),
             Con_RT_se = Con_RT_sd / sqrt(sum(as.numeric(`Reaction Time`), na.rm = TRUE)/Con_RT_mn)
@@ -140,7 +144,7 @@ congruent_summary_zone_types <- data_simons_merged %>%
 #Loop to caclculate Incongruent Mean, SD, SE, and % correct
 incongruent_summary_zone_types <- data_simons_merged %>%
   filter(`Question Type` == "Incongruent") %>%
-  group_by(Participant.Public.ID) %>%
+  group_by(`Participant Public ID`) %>%
   summarize(IN_RT_mn = mean(as.numeric(`Reaction Time`), na.rm = TRUE),
             IN_RT_sd = sd(as.numeric(`Reaction Time`), na.rm = TRUE),
             IN_RT_se  = IN_RT_sd / sqrt(sum(as.numeric(`Reaction Time`), na.rm = TRUE)/IN_RT_mn)
@@ -163,12 +167,17 @@ simons_bind_a <- rbind(congruent_summary_zone_types,incongruent_summary_zone_typ
 simons_bind_b <-rbind(total_summary_zone_types, simons_bind_a)
 #View(simons_bind_b)
 
-#New Binds congruent  summarie and Percent Correct into one dataframe by row
+#Binds total summary's with percent correct by row
+simons_bind_c <-merge(total_summary_zone_types, Percent_correct)
+#View(simons_bind_c)
+write.csv(simons_bind_c, "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Simons/Simons_participant_summaries")
+
+#Binds congruent  summarie and Percent Correct into one dataframe by row
 simons_Con_PC <- merge(congruent_summary_zone_types, Percent_correct)
 #View(simons_Con_PC)
 write.csv(simons_Con_PC, "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Simons/Simons_Congruent_Summaries.csv")
 
-#New Binds incongruent  summarie and Percent Correct into one dataframe by row
+#Binds incongruent  summarie and Percent Correct into one dataframe by row
 simons_Incon_PC <- merge(incongruent_summary_zone_types, Percent_correct)
 #View(simons_INcon_PC)
 write.csv(simons_Incon_PC, "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Simons/Simons_Incongruent_Summaries.csv")
@@ -243,21 +252,21 @@ total_excludedb
 #Creates histograms based on the overall summaries
 
 ## Histogram for distribution of PCorrect
-ggplot(data = total_summary_zone_types, aes(x = PCorrect)) +
+ggplot(data = simons_bind_c, aes(x = PCorrect)) +
   geom_histogram() +
   xlab("Proportion Correct") +
   ggtitle("simons Overall Prop Correct")
 ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Simons/Overall_simons_Percent_Correct.jpeg")
 
 ## Histogram for distribution of RT_mn
-ggplot(data = total_summary_zone_types, aes(x = RT_mn)) +
+ggplot(data = simons_bind_c, aes(x = RT_mn)) +
   geom_histogram() +
   xlab("Mean") +
   ggtitle("simons Mean Overall Reaction Time")
 ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Simons/Overall_simons_Mean.jpeg")
 
 ## Histogram for distribution of RT_sd
-ggplot(data = total_summary_zone_types, aes(x = RT_sd)) +
+ggplot(data = simons_bind_c, aes(x = RT_sd)) +
   geom_histogram() +
   xlab("SD") +
   ggtitle("simons Overall Standard Deviation")
