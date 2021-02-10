@@ -98,12 +98,24 @@ data_simons_stripREPEATE <- data_simons_strippedBOT[!(REPEATER$List.Public.ID ==
 ##not sure why.
 
 #!If this errors, then we need to change the colomn names to match here and all other "Participant.Public.ID"
-#!will need to be changed to "Gorilla_Public_ID" after this point.
+#!will need to be changed to "Gorilla_Public_ID" for the script.
 
 data_simons_merged <- merge(MOOD_SCORES, data_simons_stripREPEATE, by.x ="Gorilla_Public_ID", by.y = "Participant.Public.ID")
 
 #View variables as output tab
 #View(data_simons_merged)
+
+#Under development; Trim Outliers ==============================================================================
+#!!!Adjust so that it groups by private id, and prints out a list of those who the script is removing from the dataframe.!!!
+
+#Filters out participants who's mean RT are considered Outliers (-2 <= Reaction Time Mean >= 2)
+#data_visual_trimmed <- data_visual_merged %>%
+#  filter(`Reaction Time` <= mean(data_simons_merged$`Reaction Time`, na.rm = TRUE) + 2 * sd(data_simons_merged$`Reaction Time`, na.rm = TRUE),
+#         `Reaction Time` >= mean(data_simons_merged$`Reaction Time`, na.rm = TRUE) - 2 * sd(data_simons_merged$`Reaction Time`, na.rm = TRUE))
+#View(data_visual_trimmed)
+
+#View variables as output tab
+#View(data_visual_trimmed)
 
 # Create Summaries==============================================================
 #Loop to caclculate overall Mean, SD, SE, and % correct
