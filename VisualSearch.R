@@ -28,15 +28,18 @@ for (i in 1:length(list_filenames)) {
 #Read in Exclusion Files
 BOT <- read.csv("C:/AnalyzeMe!/VBAC_Aging/Subject/Raw/Gorilla/Exclusions/UnusableDataBots_DATA_LABELS_2020-08-15_0959.csv")
 REPEATER <- read.csv("C:/AnalyzeMe!/VBAC_Aging/Subject/Raw/Gorilla/Exclusions/RepeatersAcrossStudy_Gorilla_2020-08-15_1050.csv")
+MOOD_SCORES <- read.csv()
 
 #View variables in console
 list_visual
 #BOT
 #REPEATER
+#MOOD_SCORES
 
 #View variables as output tab
 #View(BOT)
 #View(REPEATER)
+#View (MOOD_SCORES)
 # ==============================================================================
 ##Binds data into dataframe for analysis
 data_visual_combined <- as.data.frame(do.call(rbind, list_visual))
