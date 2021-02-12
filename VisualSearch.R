@@ -8,7 +8,7 @@ library(psych)
 ##Reads and selects needed columns from data sheets
 
 #!!!Change for other scripts line 12 & 15
-analyze_me <- "C:/AnalyzeMe!/VBAC_Aging/Subject/Raw/Gorilla/Visual Search"
+analyze_me <- "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Visual Search"
 
 # set working directory to location of files on "Laptop A" comp
 setwd(analyze_me)
@@ -30,13 +30,7 @@ for (i in 1:length(list_filenames)) {
 #Read in Exclusion Files
 BOT <- read.csv("file path ")
 REPEATER <- read.csv("file path ")
-MOOD_SCORES <- read.csv("file path ")
-
-#View variables in console
-list_visual
-#BOT
-#REPEATER
-#MOOD_SCORES
+MOOD_SCORES <- read.csv("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Redcap/VBAConline-PilotDemographicRepo_DATA_LABELS_2021-02-10_1128.csv")
 
 #View variables as output tab
 #View(BOT)
@@ -49,10 +43,10 @@ data_visual_combined <- as.data.frame(do.call(rbind, list_visual))
 
 #Select specific columns from data sheets
 data_visual_stripped <- data_visual_combined %>%
-  select("Participant.Public.ID",
-         "Participant.Private.ID",
-         "Zone.Type",
-         "Reaction.Time",
+  select("Participant Public ID",
+         "Participant Private ID",
+         "Zone Type",
+         "Reaction Time",
          "Correct",
          "Answer"
   )
@@ -60,7 +54,7 @@ data_visual_stripped <- data_visual_combined %>%
 data_visual_filtered <- filter(data_visual_stripped, `Zone Type` == "response_keyboard")
 
 #Counts the total number of unique IDs
-Total_count <- unique(data_visual_filtered$Participant.Public.ID)
+Total_count <- unique(data_visual_filtered$`Participant Public ID`)
 length(Total_count)
 
 #View variables as output tab
@@ -87,17 +81,16 @@ View(data_visual_filtered)
 #Exclusion removal
 
 #Remove Bots from data_visual_stripped
-data_visual_strippedBOT <- data_visual_filtered[!(BOT$Gorilla.public.id == data_visual_filtered$Participant.Public.ID),]
+data_visual_strippedBOT <- data_visual_filtered[!(BOT$`Participant Public ID` == data_visual_filtered$`Participant Public ID`),]
 #data_visual_strippedBOT
 
 #Remove second participantion of repeaters from data_visual_stripped
-data_visual_stripREPEATE <- data_visual_strippedBOT[!(REPEATER$List.Public.ID == data_visual_strippedBOT$Participant.Public.ID),]
+data_visual_stripREPEATE <- data_visual_strippedBOT[!(REPEATER$List.Public.ID == data_visual_strippedBOT$`Participant Public ID`),]
 #data_visual_stripREPEATE 
 
 #View variables as output tab
 #View(data_visual_strippedBOT)
 #View(data_visual_stripREPEATE)
-
 
 #Merge Mood Scores ==============================================================================
 #Merges MOOD_SCORES with data_visual_filtered so that the mood and ID's from Redcap
@@ -106,7 +99,7 @@ data_visual_stripREPEATE <- data_visual_strippedBOT[!(REPEATER$List.Public.ID ==
 ##Note:Merge wouldnt work unless I had two different column names to merge together,
 ##not sure why.
 
-data_visual_merged <- merge(MOOD_SCORES, data_visual_stripREPEATE, by.x ="Gorilla_Public_ID", by.y = "Gorilla.Public.Id")
+data_visual_merged <- merge(MOOD_SCORES, data_visual_stripREPEATE, by.x ="Gorilla_Public_ID", by.y = "Participant Public ID")
 
 #View variables as output tab
 View(data_visual_merged)
@@ -118,18 +111,16 @@ View(data_visual_merged)
 #data_visual_trimmed <- data_visual_merged %>%
 #  filter(`Reaction Time` <= mean(data_visual_merged$`Reaction Time`, na.rm = TRUE) + 2 * sd(data_visual_merged$`Reaction Time`, na.rm = TRUE),
 #         `Reaction Time` >= mean(data_visual_merged$`Reaction Time`, na.rm = TRUE) - 2 * sd(data_visual_merged$`Reaction Time`, na.rm = TRUE))
-#View(data_visual_trimmed)
 
 #View variables as output tab
 #View(data_visual_trimmed)
 
 #Create Summaries ==============================================================================
-#Changed filter by to public id, changed col names to be the same in all 3.
-#Loop to caclculate overall Mean, SD, SE, and % correct
+#!!!Check the dataset info is being pulled from here if you are not just running the entire script
 
 #Loop to caclculate Overall Mean, SD, SE, and % correct, and adds a Type column
 total_summary_zone_types <- data_visual_stripREPEATE %>%
-  group_by(`Participant.Public.ID`) %>%
+  group_by(`Participant Public ID`) %>%
   summarize(RT_mn = mean(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_sd = sd(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_se  = RT_sd / sqrt(sum(as.numeric(`Reaction Time`), na.rm = TRUE)/RT_mn),
@@ -140,7 +131,7 @@ total_summary_zone_types$Type <- "Overall"
 #Loop to caclculate Image Present Mean, SD, SE, and % correct, and adds a Type column
 congruent_summary_zone_types <- data_visual_stripREPEATE %>%
   filter(`Answer` == "Present") %>%
-  group_by(`Participant.Public.ID`) %>%
+  group_by(`Participant Public ID`) %>%
   summarize(RT_mn = mean(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_sd = sd(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_se  = RT_sd/ sqrt(sum(as.numeric(`Reaction Time`), na.rm = TRUE)/RT_mn)
@@ -151,7 +142,7 @@ congruent_summary_zone_types$Type <- "Congruent"
 #Loop to caclculate Image Absent Mean, SD, SE, and % correct, and adds a Type column
 incongruent_summary_zone_types <- data_visual_stripREPEATE %>%
   filter(`Answer` == "Absent") %>%
-  group_by(`Participant.Public.ID`) %>%
+  group_by(`Participant Public ID`) %>%
   summarize(RT_mn = mean(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_sd = sd(as.numeric(`Reaction Time`), na.rm = TRUE),
             RT_se  = RT_sd / sqrt(sum(as.numeric(`Reaction Time`), na.rm = TRUE)/RT_mn)
@@ -161,7 +152,7 @@ incongruent_summary_zone_types$Type <- "Incongruent"
 
 #Calculates percent correct
 Percent_correct <- data_visual_stripREPEATE %>%
-  group_by(`Participant.Public.ID`) %>%
+  group_by(`Participant Public ID`) %>%
   summarize(PCorrect = mean(as.numeric(`Correct`),na.rm = TRUE))
 
 #View(total_summary_zone_types)
@@ -178,6 +169,11 @@ visual_bind_a <- rbind(congruent_summary_zone_types,incongruent_summary_zone_typ
 #Binds Overall, with the congruent and incongruent summaries by row
 visual_bind_b <-rbind(total_summary_zone_types, visual_bind_a)
 #View(visual_bind_b)
+
+#Binds total summary's with percent correct by row
+simons_bind_c <-merge(total_summary_zone_types, Percent_correct)
+View(simons_bind_c)
+write.csv(simons_bind_c, "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Visual_participant_summaries.csv")
 
 #New Binds congruent  summarie and Percent Correct into one dataframe by row
 visual_Con_PC <- merge(congruent_summary_zone_types, Percent_correct)
@@ -205,7 +201,7 @@ write.csv(visual_summaries_Con_IN_layoutB, "C:/AnalyzeMe!/VBAC_Online/Pilot_Data
 
 #Merges the overall trial data with the percent correct data
 visual_summaries_all_scores <- merge(data_visual_filtered , Percent_correct)
-View(visual_summaries_all_scores)
+#View(visual_summaries_all_scores)
 write.csv(visual_summaries_all_scores, "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/visual_Summaries_All_trials.csv")
 
 #Filter by over 50 and 70 percent correct ==========================================================================
@@ -244,10 +240,10 @@ write.csv(above_50_data_merged, "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Sc
 #Excluded ID's ====================================================================
 #Counts the number of unique ID's in order to get a total excluded at each point
 
-Total_counta <- unique(data_visual_merged$Participant.Public.ID)
+Total_counta <- unique(data_visual_merged$`Participant Public ID`)
 length(Total_counta)
 
-Total_above70 <- unique(above_70_data_all_trial$Participant.Public.ID)
+Total_above70 <- unique(above_70_data_all_trial$`Participant Public ID`)
 length(Total_above70)
 
 total_excludeda <- (length(Total_count) - length(Total_counta))
@@ -260,21 +256,21 @@ total_excludedb
 #Creates histograms based on the overall summaries
 
 ## Histogram for distribution of PCorrect
-ggplot(data = total_summary_zone_types, aes(x = PCorrect)) +
+ggplot(data = simons_bind_c, aes(x = PCorrect)) +
   geom_histogram() +
   xlab("Proportion Correct") +
   ggtitle("Visual Overall Prop Correct")
 ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Overall_visual_Percent_Correct.jpeg")
 
 ## Histogram for distribution of RT_mn
-ggplot(data = total_summary_zone_types, aes(x = RT_mn)) +
+ggplot(data = simons_bind_c, aes(x = RT_mn)) +
   geom_histogram() +
   xlab("Mean") +
   ggtitle("Visual Overall Mean Reaction Time")
 ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Overall_visual_Mean.jpeg")
 
 ## Histogram for distribution of RT_sd
-ggplot(data = total_summary_zone_types, aes(x = RT_sd)) +
+ggplot(data = simons_bind_c, aes(x = RT_sd)) +
   geom_histogram() +
   xlab("SD") +
   ggtitle("Visual Overall Standard Deviation")
@@ -291,14 +287,14 @@ ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Searc
 #ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Congruent_visual_Percent_Correct.jpeg")
 
 ## Histogram for distribution of RT_mn
-ggplot(data = congruent_summary_zone_types, aes(x = RT_mn)) +
+ggplot(data = visual_Con_PC, aes(x = RT_mn)) +
   geom_histogram() +
   xlab("Mean") +
   ggtitle("Visual Mean Congruent Reaction Time")
 ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Congruent_visual_Mean.jpeg")
 
 ## Histogram for distribution of RT_sd
-ggplot(data = congruent_summary_zone_types, aes(x = RT_sd)) +
+ggplot(data = visual_Con_PC, aes(x = RT_sd)) +
   geom_histogram() +
   xlab("SD") +
   ggtitle("Visual Congruent Standard Deviation")
@@ -315,14 +311,14 @@ ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Searc
 #ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Incongruent_visual_Percent_Correct.jpeg")
 
 ## Histogram for distribution of RT_mn
-ggplot(data = incongruent_summary_zone_types, aes(x = RT_mn)) +
+ggplot(data = visual_Incon_PC, aes(x = RT_mn)) +
   geom_histogram() +
   xlab("Mean") +
   ggtitle("Visual Mean Incongruent Reaction Time")
 ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Inongruent_visual_Mean.jpeg")
 
 ## Histogram for distribution of RT_sd
-ggplot(data = incongruent_summary_zone_types, aes(x = RT_sd)) +
+ggplot(data = visual_Incon_PC, aes(x = RT_sd)) +
   geom_histogram() +
   xlab("SD") +
   ggtitle("Visual Incongruent Standard Deviation")
@@ -335,13 +331,13 @@ ggplot(data = visual_summaries_Con_IN_layoutB, mapping = aes(x = reorder(Type, R
   labs(x = "Question Type", y = "Reaction Time (milliseconds)")+
   coord_flip()+
   ggtitle("Mean Reaction Times")+
-  ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Con_Incon_MN_BOX.jpeg")
+  ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Visual_Con_Incon_MN_BOX.jpeg")
 
 ggplot(data = visual_summaries_Con_IN_layoutB, mapping = aes(x = reorder(Type, RT_sd, median, na.rm = TRUE), y = RT_sd))+
   geom_boxplot()+
   labs(x = "Question Type", y = "Reaction Time (milliseconds)")+
   coord_flip()+
   ggtitle("Standard Deviation of Reaction Times")+
-  ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Con_Incon_SD_BOX.jpeg")
+  ggsave("C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Script_Reports/Visual Search/Visual_Con_Incon_SD_BOX.jpeg")
 
 

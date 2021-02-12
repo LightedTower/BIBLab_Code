@@ -8,7 +8,7 @@ library(psych)
 #This chunk imports the data files
 
 #!!!Change for other scripts line 12 & 15
-analyze_me <- ""C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Simons""
+analyze_me <- "C:/AnalyzeMe!/VBAC_Online/Pilot_Data/Gorilla/Simons"
 
 # set working directory to location of files on computer; defined above
 setwd(analyze_me)
@@ -121,7 +121,7 @@ data_simons_merged <- merge(MOOD_SCORES, data_simons_stripREPEATE, by.x ="Gorill
 #View variables as output tab
 #View(data_visual_trimmed)
 
-# Create Summaries==============================================================
+#Create Summaries==============================================================
 #Loop to caclculate overall Mean, SD, SE, and % correct
 total_summary_zone_types <- data_simons_merged %>%
   group_by(`Participant Public ID`) %>%
